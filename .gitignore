@@ -1,0 +1,43 @@
+# Secrets and tool settings
+.env
+.env.*
+!.env.example
+**/key.properties
+*.jks
+*.keystore
+.mcp.json
+.claude/
+.npmrc
+
+# Local data, exports, and built files
+*.sql
+*.sql.gz
+*.apk
+*.aab
+*.exe
+**/storage/app/private/
+**/storage/logs/*.log
+
+# Laravel
+backend/vendor/
+backend/node_modules/
+backend/bootstrap/cache/*
+!backend/bootstrap/cache/.gitignore
+backend/public/hot
+backend/public/storage
+
+# Flutter / Dart
+**/.dart_tool/
+**/build/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/android/local.properties
+**/android/.gradle/
+**/ios/Pods/
+
+# Editor and OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
