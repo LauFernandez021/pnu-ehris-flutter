@@ -1,0 +1,33 @@
+
+workflows:
+  ios-simulator-preview:
+    name: PNU EHRIS iOS Simulator Preview
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    environment:
+      flutter: 3.47.7
+      xcode: latest
+
+    scripts:
+      - name: Get dependencies and run request tests
+        script: |
+          cd mobile_app
+          flutter pub get
+          flutter test \
+            test/pnu_api_test.dart \
+            test/pnu_compensatory_time_off_tab_test.dart \
+            test/pnu_filing_requests_tab_test.dart \
+            test/pnu_service_requests_tab_test.dart
+
+      - name: Build and package iOS Simulator app
+        script: |
+          cd mobile_app
+          flutter build ios --simulator --release --no-codesign \
+            --dart-define=API_URL=https://ehris-mobile-demo.ednc.solutions/api
+          ditto -c -k --sequesterRsrc --keepParent \
+            build/ios/iphonesimulator/Runner.app \
+            build/ios/iphonesimulator/HRMS-Simulator.zip
+
+    artifacts:
+      - mobile_app/build/ios/iphonesimulator/HRMS-Simulator.zip
