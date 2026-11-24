@@ -40,10 +40,29 @@ jobs:
             build/ios/iphonesimulator/Runner.app \
             build/ios/iphonesimulator/HRMS-Simulator.zip
 
-      - name: Upload simulator artifact
+      - name: Launch app in iOS Simulator and capture screen
+        working-directory: mobile_app
+        run: |
+          DEVICE_UDID=$(xcrun simctl list devices available --json | python3 -c \
+            'import json,sys; devices=json.load(sys.stdin)["devices"]; print(next(device["udid"] for runtime in devices.values() for device in runtime if device["isAvailable"] and device["name"].startswith("iPhone")))')
+          xcrun simctl boot "$DEVICE_UDID"
+          xcrun simctl bootstatus "$DEVICE_UDID" -b
+          APP_PATH=build/ios/iphonesimulator/Runner.app
+          BUNDLE_ID=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_PATH/Info.plist")
+          xcrun simctl install "$DEVICE_UDID" "$APP_PATH"
+          xcrun simctl launch "$DEVICE_UDID" "$BUNDLE_ID"
+          sleep 10
+          mkdir -p build/ios/simulator-test
+          xcrun simctl io "$DEVICE_UDID" screenshot \
+            build/ios/simulator-test/HRMS-iOS-Simulator.png
+          test -s build/ios/simulator-test/HRMS-iOS-Simulator.png
+
+      - name: Upload simulator app and launch screenshot
         uses: actions/upload-artifact@v4
         with:
-          name: HRMS-iOS-Simulator
-          path: mobile_app/build/ios/iphonesimulator/HRMS-Simulator.zip
+          name: HRMS-iOS-Simulator-Test
+          path: |
+            mobile_app/build/ios/iphonesimulator/HRMS-Simulator.zip
+            mobile_app/build/ios/simulator-test/HRMS-iOS-Simulator.png
           if-no-files-found: error
           retention-days: 1
