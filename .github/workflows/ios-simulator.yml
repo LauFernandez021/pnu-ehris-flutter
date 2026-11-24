@@ -1,0 +1,49 @@
+name: iOS Simulator Preview
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Flutter
+        run: |
+          git clone --depth 1 --branch 3.47.7 \
+            https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+
+      - name: Test request features
+        working-directory: mobile_app
+        run: |
+          flutter pub get
+          flutter test \
+            test/pnu_api_test.dart \
+            test/pnu_compensatory_time_off_tab_test.dart \
+            test/pnu_filing_requests_tab_test.dart \
+            test/pnu_service_requests_tab_test.dart
+
+      - name: Build iOS Simulator app
+        working-directory: mobile_app
+        run: |
+          flutter build ios --simulator --debug --no-codesign \
+            --dart-define=API_URL=https://ehris-mobile-demo.ednc.solutions/api
+          ditto -c -k --sequesterRsrc --keepParent \
+            build/ios/iphonesimulator/Runner.app \
+            build/ios/iphonesimulator/HRMS-Simulator.zip
+
+      - name: Upload simulator artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HRMS-iOS-Simulator
+          path: mobile_app/build/ios/iphonesimulator/HRMS-Simulator.zip
+          if-no-files-found: error
+          retention-days: 1
