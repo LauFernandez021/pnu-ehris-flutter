@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hrms_core/hrms_core.dart';
 
-import 'register_page.dart';
-
 import 'providers.dart';
-import 'updater.dart';
+import 'pnu_api.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -15,23 +13,15 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  final _email = TextEditingController();
+  final _username = TextEditingController();
   final _password = TextEditingController();
   bool _loading = false;
   bool _obscure = true;
   String? _error;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      checkForUpdate(context, ref);
-    });
-  }
-
-  @override
   void dispose() {
-    _email.dispose();
+    _username.dispose();
     _password.dispose();
     super.dispose();
   }
@@ -42,8 +32,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       _error = null;
     });
     try {
-      final result = await AuthService(ref.read(apiClientProvider))
-          .login(_email.text.trim(), _password.text, deviceName: 'mobile');
+      final result = await PnuAuthService(ref.read(apiClientProvider)).login(
+        _username.text.trim(),
+        _password.text,
+        deviceName: 'mobile',
+      );
       await ref.read(sessionProvider.notifier).signIn(result);
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e.message);
@@ -87,11 +80,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                   const SizedBox(height: 32),
                   TextField(
-                    controller: _email,
-                    keyboardType: TextInputType.emailAddress,
+                    controller: _username,
                     decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.mail_outline),
+                      labelText: 'Username',
+                      prefixIcon: Icon(Icons.person_outline),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -134,15 +126,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         : const Text('Sign in'),
                   ),
                   const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: _loading
-                        ? null
-                        : () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const RegisterPage(),
-                            ),
-                          ),
-                    child: const Text('New here? Create an account'),
+                  Text(
+                    'Sign in with your PNU EHRIS employee account. Contact HR if you need access.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),

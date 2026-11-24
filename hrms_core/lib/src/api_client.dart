@@ -90,15 +90,19 @@ class ApiClient {
     final data = e.response?.data;
 
     if (data is Map) {
-      final errors = data['errors'];
+      final payload = data['response'] is Map ? data['response'] as Map : data;
+      final errors = payload['errors'];
       if (errors is Map && errors.isNotEmpty) {
         final first = errors.values.first;
         if (first is List && first.isNotEmpty) {
           return ApiException(first.first.toString(), status);
         }
       }
-      if (data['message'] != null) {
-        return ApiException(data['message'].toString(), status);
+      if (payload['message'] != null || payload['msg'] != null) {
+        return ApiException(
+          (payload['message'] ?? payload['msg']).toString(),
+          status,
+        );
       }
     }
 

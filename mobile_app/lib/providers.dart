@@ -5,13 +5,14 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'session_store.dart';
+import 'pnu_api.dart';
 
 /// Android emulator reaches your PC at 10.0.2.2. For a real phone use:
 /// flutter run --dart-define=API_URL=http://YOUR-PC-IP:8000/api
 String get apiBaseUrl {
   const override = String.fromEnvironment('API_URL');
   if (override.isNotEmpty) return override;
-  if (kReleaseMode) return 'https://kenneth.mycreativepanda.com/hrms-api/api';
+  if (kReleaseMode) return 'https://ehris-mobile-demo.ednc.solutions/api';
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
     return 'http://10.0.2.2:8000/api';
   }
@@ -55,6 +56,53 @@ final apiClientProvider = Provider<ApiClient>((ref) {
     tokenProvider: () async => ref.read(sessionProvider)?.token,
   );
 });
+
+final pnuDtrProvider = FutureProvider.autoDispose<List<DtrBatch>>(
+  (ref) => guarded(
+    ref,
+    () => PnuAuthService(ref.read(apiClientProvider)).dtr(),
+  ),
+);
+
+final pnuProfileProvider = FutureProvider.autoDispose<Map<String, dynamic>>(
+  (ref) => guarded(
+    ref,
+    () => PnuAuthService(ref.read(apiClientProvider)).me(),
+  ),
+);
+
+final pnuFilingRequestsProvider =
+    FutureProvider.autoDispose<List<PnuFilingRequest>>(
+      (ref) => guarded(
+        ref,
+        () => PnuAuthService(ref.read(apiClientProvider)).filingRequests(),
+      ),
+    );
+
+final pnuServiceRequestsProvider =
+    FutureProvider.autoDispose<List<PnuServiceRequest>>(
+      (ref) => guarded(
+        ref,
+        () => PnuAuthService(ref.read(apiClientProvider)).serviceRequests(),
+      ),
+    );
+
+final pnuCompensatoryTimeOffProvider =
+    FutureProvider.autoDispose<PnuCompensatoryTimeOffSummary>(
+      (ref) => guarded(
+        ref,
+        () =>
+            PnuAuthService(ref.read(apiClientProvider)).compensatoryTimeOffs(),
+      ),
+    );
+
+final pnuNotificationsProvider =
+    FutureProvider.autoDispose<List<PnuNotification>>(
+      (ref) => guarded(
+        ref,
+        () => PnuAuthService(ref.read(apiClientProvider)).notifications(),
+      ),
+    );
 
 final internetStatusProvider = StreamProvider<InternetStatus>(
   (ref) => InternetConnection().onStatusChange,

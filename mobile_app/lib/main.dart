@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hrms_core/hrms_core.dart';
 
 import 'home_shell.dart';
 import 'login_page.dart';
+import 'pnu_password_change_page.dart';
 import 'providers.dart';
 import 'session_store.dart';
 
@@ -49,9 +49,9 @@ class EmployeeApp extends ConsumerWidget {
       home: session == null
           ? const LoginPage()
           : session.mustChangePassword
-          ? PasswordChangePage(
+          ? PnuPasswordChangePage(
               api: ref.read(apiClientProvider),
-              mandatory: true,
+              allowBack: false,
               onComplete: () =>
                   ref.read(sessionProvider.notifier).markPasswordChanged(),
             )
